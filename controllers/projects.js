@@ -1,7 +1,19 @@
 const Project = require('../models/project');
 
-exports.getProjects = (req, res, next) => {
-    Project.find()
+exports.getProjects = async (req, res, next) => {
+    try {
+        const projects = await Project.find();
+        res.status(200).json({
+            message: 'Fetched projects successfully.',
+            projects: projects
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*Project.find()
         .then(projects => {
             res.status(200).json({
                 message: 'Fetched projects successfully.',
@@ -13,11 +25,23 @@ exports.getProjects = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };
 
-exports.getNewProjects = (req, res, next) => {
-    Project.find({ status: 'new'})
+exports.getNewProjects = async (req, res, next) => {
+    try {
+        const projects = await Project.find({ status: 'new'});
+        res.status(200).json({
+            message: 'Fetched new projects successfully.',
+            projects: projects
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*Project.find({ status: 'new'})
         .then(projects => {
             res.status(200).json({
                 message: 'Fetched new projects successfully.',
@@ -29,11 +53,23 @@ exports.getNewProjects = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };
 
-exports.getProcessProjects = (req, res, next) => {
-    Project.find({ status: 'process'}).populate('reports.idEmployee', 'name').populate('reports.idReport')
+exports.getProcessProjects = async (req, res, next) => {
+    try {
+        const projects = await Project.find({ status: 'process'}).populate('reports.idEmployee', 'name').populate('reports.idReport')
+        res.status(200).json({
+            message: 'Fetched process projects successfully.',
+            projects: projects
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*Project.find({ status: 'process'}).populate('reports.idEmployee', 'name').populate('reports.idReport')
         .then(projects => {
             res.status(200).json({
                 message: 'Fetched process projects successfully.',
@@ -45,11 +81,23 @@ exports.getProcessProjects = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };
 
-exports.getCloseProjects = (req, res, next) => {
-    Project.find({ status: 'close'}).populate('reports.idEmployee', 'name').populate('reports.idReport')
+exports.getCloseProjects = async (req, res, next) => {
+    try {
+        const projects = await Project.find({ status: 'close'}).populate('reports.idEmployee', 'name').populate('reports.idReport')
+        res.status(200).json({
+            message: 'Fetched close projects successfully.',
+            projects: projects
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*Project.find({ status: 'close'}).populate('reports.idEmployee', 'name').populate('reports.idReport')
         .then(projects => {
             res.status(200).json({
                 message: 'Fetched close projects successfully.',
@@ -61,12 +109,26 @@ exports.getCloseProjects = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };
 
-exports.getProject = (req, res, next) => {
+exports.getProject = async (req, res, next) => {
     const projectId = req.params.projectId;
-    Project.findById(projectId)
+    try {
+        const project = await Project.findById(projectId);
+        if (!project) {
+            const error = new Error('Could not find project.');
+            error.statusCode = 404;
+            next(error);
+        }
+        res.status(200).json({ message: 'Project fetched.', project: project });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*Project.findById(projectId)
         .then(project => {
             if (!project) {
                 const error = new Error('Could not find project.');
@@ -80,5 +142,5 @@ exports.getProject = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };

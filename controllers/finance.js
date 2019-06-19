@@ -4,8 +4,20 @@ const Transaction = require('../models/transaction');
 
 const { validationResult } = require('express-validator/check');
 
-exports.getExpenditures = (req, res, next) => {
-    Expenditure.find()
+exports.getExpenditures = async (req, res, next) => {
+    try {
+        const expenditures= await Expenditure.find();
+        res.status(200).json({
+            message: 'Fetched expenditures successfully.',
+            expenditures: expenditures
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*Expenditure.find()
         .then(expenditures => {
             res.status(200).json({
                 message: 'Fetched expenditures successfully.',
@@ -17,11 +29,23 @@ exports.getExpenditures = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };
 
-exports.getRequests = (req, res, next) => {
-    Request.find().populate('idEmployee', 'name')
+exports.getRequests = async (req, res, next) => {
+    try {
+        const requests = await Request.find().populate('idEmployee', 'name');
+        res.status(200).json({
+            message: 'Fetched requests successfully.',
+            requests: requests
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*Request.find().populate('idEmployee', 'name')
         .then(requests => {
             res.status(200).json({
                 message: 'Fetched requests successfully.',
@@ -33,11 +57,23 @@ exports.getRequests = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };
 
-exports.getTransaction = (req, res, next) => {
-    Transaction.find().populate('idEmployee', 'name')
+exports.getTransaction = async (req, res, next) => {
+    try {
+        const transaction = await Transaction.find().populate('idEmployee', 'name');
+        res.status(200).json({
+            message: 'Fetched transaction successfully.',
+            transaction: transaction
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*Transaction.find().populate('idEmployee', 'name')
         .then(transaction => {
             res.status(200).json({
                 message: 'Fetched transaction successfully.',
@@ -49,7 +85,7 @@ exports.getTransaction = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };
 
 exports.createExpenditure = async (req, res, next) => {

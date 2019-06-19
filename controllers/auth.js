@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/employee');
 
-exports.signup = (req, res, next) => {
+exports.signup = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const error = new Error('Validation failed.');
@@ -15,7 +15,22 @@ exports.signup = (req, res, next) => {
     const email = req.body.email;
     const name = req.body.name;
     const password = req.body.password;
-    bcrypt.hash(password, 12)
+    try {
+        const hashedPw =  await bcrypt.hash(password, 12);
+        const user = new User({
+            email: email,
+            password: hashedPw,
+            name: name
+        });
+        await user.save();
+        res.status(201).json({message: 'Employee created!', userId: user._id});
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+    /*bcrypt.hash(password, 12)
         .then(hashedPw => {
             const user = new User({
                 email: email,
@@ -32,14 +47,39 @@ exports.signup = (req, res, next) => {
                 err.statusCode = 500;
             }
             next(err);
-        });
+        });*/
 };
 
-exports.login = (req, res, next) => {
+exports.login = async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   let loadedUser;
-  User.findOne({email: email})
+    try {
+        const user = await User.findOne({email: email});
+        if (!user) {
+            const error = new Error('User with this email could not be found.');
+            error.statusCode = 401;
+            next(error);
+        }
+        loadedUser = user;
+        const isEqual = await bcrypt.compare(password, user.password);
+        if (!isEqual) {
+            const error = new Error('Wrong password!');
+            error.statusCode = 401;
+            next(error);
+        }
+        const token = jwt.sign({
+            email: loadedUser.email,
+            userId: loadedUser._id.toString()
+        }, 'supersuperverysecretlongstring', { expiresIn: '1h' });
+        res.status(200).json({token: token, userId: loadedUser._id.toString(), balance: loadedUser.balance})
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+  /*User.findOne({email: email})
       .then(user => {
           if (!user) {
               const error = new Error('User with this email could not be found.');
@@ -66,5 +106,5 @@ exports.login = (req, res, next) => {
               err.statusCode = 500;
           }
           next(err);
-      });
+      });*/
 };

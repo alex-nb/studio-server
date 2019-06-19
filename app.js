@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -39,7 +40,7 @@ app.use((error, req, res, next) => {
 
 mongoose
     .connect(
-        'mongodb+srv://alex:5cpBxw7JhaHGdKod@clusterstudio-42qm3.mongodb.net/studio?retryWrites=true', { useNewUrlParser: true }
+        process.env.DATABASE_HOST, { useNewUrlParser: true }
     )
     .then(result => {
        app.listen(8080);
