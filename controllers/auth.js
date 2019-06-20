@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/employee');
 
 exports.signup = async (req, res, next) => {
-    const errors = validationResult(req);
+    const errors = await validationResult(req);
     if (!errors.isEmpty()) {
         const error = new Error('Validation failed.');
         error.statusCode = 422;

@@ -62,10 +62,10 @@ exports.getRequests = async (req, res, next) => {
 
 exports.getTransaction = async (req, res, next) => {
     try {
-        const transaction = await Transaction.find().populate('idEmployee', 'name');
+        const transactions = await Transaction.find().populate('idEmployee', 'name');
         res.status(200).json({
             message: 'Fetched transaction successfully.',
-            transaction: transaction
+            transactions: transactions
         });
     } catch (err) {
         if (!err.statusCode) {
