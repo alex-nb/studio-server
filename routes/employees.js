@@ -6,6 +6,8 @@ const isAuth = require('../middleware/is-auth');
 
 const router = express.Router();
 
+router.get('/', isAuth, employeesController.getEmployeesList);
+router.get('/departments', isAuth, employeesController.getDepartmentsStructure);
 router.get('/info/:postId', isAuth, employeesController.getPersonalInfo);
 
 module.exports = router;
