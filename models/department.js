@@ -15,14 +15,6 @@ const departmentSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: 'Employee',
             required: false
-        },
-        name: {
-            type: String,
-            required: false
-        },
-        img: {
-            type: String,
-            required: false
         }
     }]
 });

@@ -82,14 +82,6 @@ const projectSchema = new Schema({
                 ref: 'Employee',
                 required: false
             },
-            nameEmployee: {
-                type: String,
-                required: false
-            },
-            imgEmployee: {
-                type: String,
-                required: false
-            },
             idDept: {
                 type: Schema.Types.ObjectId,
                 ref: 'Department',

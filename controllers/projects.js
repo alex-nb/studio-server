@@ -32,7 +32,10 @@ exports.getNewProjects = async (req, res, next) => {
 
 exports.getProcessProjects = async (req, res, next) => {
     try {
-        const projects = await Project.find({ status: 'process'}).populate('reports.idEmployee', 'name').populate('reports.idReport')
+        const projects = await Project.find({ status: 'process'})
+            .populate('reports.idEmployee', 'name')
+            .populate('reports.idReport')
+            .populate('participants.idEmployee', 'name img');
         res.status(200).json({
             message: 'Fetched process projects successfully.',
             projects: projects
@@ -47,7 +50,10 @@ exports.getProcessProjects = async (req, res, next) => {
 
 exports.getCloseProjects = async (req, res, next) => {
     try {
-        const projects = await Project.find({ status: 'close'}).populate('reports.idEmployee', 'name').populate('reports.idReport')
+        const projects = await Project.find({ status: 'close'})
+            .populate('reports.idEmployee', 'name')
+            .populate('reports.idReport')
+            .populate('participants.idEmployee', 'name img');
         res.status(200).json({
             message: 'Fetched close projects successfully.',
             projects: projects
