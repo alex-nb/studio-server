@@ -1,7 +1,11 @@
 require('dotenv').config();
+
+const axios = require('axios');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+
 
 //const Transaction = require('./models/transaction');
 
@@ -45,7 +49,9 @@ mongoose
         process.env.DATABASE_HOST, { useNewUrlParser: true }
     )
     .then(result => {
+
        app.listen(8000);
+
        /*let req = new Transaction({
           title: 'Трата 1',
           expenditure: {
