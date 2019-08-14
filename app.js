@@ -43,7 +43,7 @@ mongoose
         process.env.DATABASE_HOST, { useNewUrlParser: true }
     )
     .then(result => {
-       app.listen(8080);
+       app.listen(8000);
        /*let req = new Transaction({
           title: 'Трата 1',
           expenditure: {
