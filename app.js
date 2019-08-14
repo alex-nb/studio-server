@@ -1,13 +1,18 @@
 require('dotenv').config();
+
+const axios = require('axios');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const Transaction = require('./models/transaction');
+
+//const Transaction = require('./models/transaction');
 
 const projectsRoutes = require('./routes/projects');
 const financeRoutes = require('./routes/finance');
 const reportsRoutes = require('./routes/reports');
+const employeesRoutes = require('./routes/employees');
 const authRoutes = require('./routes/auth');
 const cors = require('cors');
 
@@ -27,7 +32,8 @@ app.use((req, res, next) => {
 
 app.use('/projects', projectsRoutes);
 app.use('/finance', financeRoutes);
-app.use('/report', reportsRoutes);
+app.use('/reports', reportsRoutes);
+app.use('/employees', employeesRoutes);
 app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {

@@ -17,19 +17,6 @@ exports.getExpenditures = async (req, res, next) => {
         }
         next(err);
     }
-    /*Expenditure.find()
-        .then(expenditures => {
-            res.status(200).json({
-                message: 'Fetched expenditures successfully.',
-                expenditures: expenditures
-            });
-        })
-        .catch(err => {
-            if (!err.statusCode) {
-                err.statusCode = 500;
-            }
-            next(err);
-        });*/
 };
 
 exports.getRequests = async (req, res, next) => {
@@ -45,19 +32,6 @@ exports.getRequests = async (req, res, next) => {
         }
         next(err);
     }
-    /*Request.find().populate('idEmployee', 'name')
-        .then(requests => {
-            res.status(200).json({
-                message: 'Fetched requests successfully.',
-                requests: requests
-            });
-        })
-        .catch(err => {
-            if (!err.statusCode) {
-                err.statusCode = 500;
-            }
-            next(err);
-        });*/
 };
 
 exports.getTransaction = async (req, res, next) => {
@@ -73,19 +47,6 @@ exports.getTransaction = async (req, res, next) => {
         }
         next(err);
     }
-    /*Transaction.find().populate('idEmployee', 'name')
-        .then(transaction => {
-            res.status(200).json({
-                message: 'Fetched transaction successfully.',
-                transaction: transaction
-            });
-        })
-        .catch(err => {
-            if (!err.statusCode) {
-                err.statusCode = 500;
-            }
-            next(err);
-        });*/
 };
 
 exports.createExpenditure = async (req, res, next) => {
