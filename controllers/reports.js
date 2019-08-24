@@ -5,7 +5,8 @@ exports.getReports = async (req, res, next) => {
     try {
         const reports = await Project.find({reports:{$exists: true, $ne: []}}, '_id title hoursPlan hoursFact')
             .populate('reports.idEmployee', 'name')
-            .populate('reports.idReport', 'date report hours status');
+            .populate('reports.idReport',
+                'date report hoursWork acceptedHoursWork hoursStudy acceptedHoursStudy reason status');
         res.status(200).json({
             message: 'Fetched reports successfully.',
             reports: reports
