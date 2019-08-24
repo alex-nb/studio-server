@@ -69,7 +69,7 @@ exports.getCloseProjects = async (req, res, next) => {
 exports.getProject = async (req, res, next) => {
     const projectId = req.params.projectId;
     try {
-        const project = await Project.findById(projectId);
+        const project = await Project.findById(projectId).populate('participants.idEmployee', 'name img');
         if (!project) {
             const error = new Error('Could not find project.');
             error.statusCode = 404;
