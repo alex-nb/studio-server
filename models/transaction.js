@@ -29,6 +29,14 @@ const transactionSchema = new Schema({
     summ: {
         type: String,
         required: true
+    },
+    /*
+    * expense
+    * income
+    * */
+    type: {
+        type: String,
+        required: true
     }
 }, { timestamps: true });
 
