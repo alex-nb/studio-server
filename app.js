@@ -46,7 +46,7 @@ app.use((error, req, res, next) => {
 
 mongoose
     .connect(
-        process.env.DATABASE_HOST, { useNewUrlParser: true }
+        process.env.DATABASE_HOST, { useNewUrlParser: true, useFindAndModify: false }
     )
     .then(result => {
        app.listen(8000);
