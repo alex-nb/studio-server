@@ -73,7 +73,7 @@ exports.getProject = async (req, res, next) => {
         if (!project) {
             const error = new Error('Could not find project.');
             error.statusCode = 404;
-            next(error);
+            next(error);1
         }
         res.status(200).json({ message: 'Project fetched.', project: project });
     } catch (err) {
