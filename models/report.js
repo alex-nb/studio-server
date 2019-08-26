@@ -20,9 +20,25 @@ const reportSchema = new Schema({
         type: String,
         required: true
     },
-    hours: {
+    hoursWork: {
         type: Number,
-        required: true
+        required: false
+    },
+    acceptedHoursWork: {
+        type: Number,
+        required: false
+    },
+    hoursStudy: {
+        type: Number,
+        required: false
+    },
+    acceptedHoursStudy: {
+        type: Number,
+        required: false
+    },
+    reason: {
+        type: String,
+        required: false
     },
     /*
     * new
@@ -32,7 +48,8 @@ const reportSchema = new Schema({
     * */
     status: {
         type: String,
-        required: false
+        required: true,
+        default: "new"
     }
 }, { timestamps: true });
 
