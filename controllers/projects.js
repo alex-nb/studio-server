@@ -1,4 +1,5 @@
 const Project = require('../models/project');
+const Dept = require('../models/department');
 const { validationResult } = require('express-validator/check');
 
 exports.getProjects = async (req, res, next) => {
@@ -92,7 +93,6 @@ exports.updateProject = async (req, res, next) => {
         error.statusCode = 422;
         error.data = errors.array();
         throw error;
-        //return res.status(400).json({ errors: errors.array() });
     }
     const {
         id,
@@ -107,139 +107,104 @@ exports.updateProject = async (req, res, next) => {
         hours
     } = req.body;
 
-    /*
-    * status
-    * costTotal
-    * hoursPlan
-    * */
-
-    /*
-    * infoDepartments: [
-        {
-            idDept: {
-                type: Schema.Types.ObjectId,
-                ref: 'Departments',
-                required: false
-            },
-            nameDept: {
-                type: String,
-                required: false
-            },
-            cost: {
-                type: Number,
-                required: false
-            },
-            rate: {
-                type: Number,
-                required: false
-            },
-            hoursPlan: {
-                type: Number,
-                required: false
-            },
-            hoursFact: {
-                type: Number,
-                required: false
-            }
-        }
-    ]
-    * */
-
-    /*
-    * participants: [
-        {
-            idEmployee: {
-                type: Schema.Types.ObjectId,
-                ref: 'Employee',
-                required: false
-            },
-            idDept: {
-                type: Schema.Types.ObjectId,
-                ref: 'Department',
-                required: false
-            },
-            nameDept: {
-                type: String,
-                required: false
-            },
-            revenue: {
-                type: Number,
-                required: false
-            },
-            premium: {
-                type: Number,
-                required: false
-            },
-            fine: {
-                type: Number,
-                required: false
-            }
-        }
-    ]
-    * */
-
     const projectFields = {};
     projectFields.participants = [];
     projectFields.infoDepartments = [];
-    if (dateStart) projectFields.dateStart = dateStart;
-    if (dateEnd) projectFields.deadline = dateEnd;
+    if (dateStart) projectFields.dateStart = dateStart.split("-").reverse().join(".");
+    if (dateEnd) projectFields.deadline = dateEnd.split("-").reverse().join(".");
     if (fine) projectFields.fine = fine;
     if (premium) projectFields.premium = premium;
     if (totalSum) projectFields.costTotal = totalSum;
-
     if (employees) {
-        employees.forEach(employee => {
-
-        });
-        projectFields.participants.push({
-            idEmployee: {
-                type: Schema.Types.ObjectId,
-                ref: 'Employee',
-                required: false
-            },
-            idDept: {
-                type: Schema.Types.ObjectId,
-                ref: 'Department',
-                required: false
-            },
-            nameDept: {
-                type: String,
-                required: false
-            },
-            revenue: {
-                type: Number,
-                required: false
-            },
-            premium: {
-                type: Number,
-                required: false
-            },
-            fine: {
-                type: Number,
-                required: false
+        for (let idDept in employees) {
+            for (let employee in employees[idDept]) {
+                let idEmp = Object.keys(employees[idDept][employee])[0];
+                const dept = await Dept.findById(idDept, 'title');
+                projectFields.participants.push({
+                    idEmployee: idEmp,
+                    idDept: idDept,
+                    nameDept: dept.title,
+                    revenue: employees[idDept][employee][idEmp]
+                });
             }
-        });
+
+        }
     }
-
-    /*if (githubusername) profileFields.githubusername = githubusername;
-    if (skills) {
-        profileFields.skills = skills.split(',').map(skill => skill.trim());
+    if (cost) {
+        for (let idDept in cost) {
+            const dept = await Dept.findById(idDept, 'title');
+            projectFields.infoDepartments.push({
+                   idDept: idDept,
+                   nameDept: dept.title,
+                   cost: cost[idDept],
+                   rate: rate[idDept],
+                   hoursPlan: hours[idDept],
+               }
+           );
+        }
     }
-
-    // Build social object
-    profileFields.social = {};
-    if (youtube) profileFields.social.youtube = youtube;
-    if (twitter) profileFields.social.twitter = twitter;
-    if (facebook) profileFields.social.facebook = facebook;
-    if (linkedin) profileFields.social.linkedin = linkedin;
-    if (instagram) profileFields.social.instagram = instagram;*/
-
     try {
         let project = await Project.findOneAndUpdate(
             { _id: id },
-            { $set: projectFields }
+            { $set: projectFields },
+            {new: true}
         );
-        res.status(201).json({message: 'Report created!', project: project._id});
+        res.status(201).json({message: 'Project updates!', project: project});
+    } catch (err) {
+        console.error(err.message);
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+/*
+* status: close
+* dateEnd
+* participants: [
+        {
+            idEmployee: ,
+            idDept: ,
+            nameDept: ,
+            revenue: ,
+            premium: ,
+            fine:
+        }
+    ]
+* */
+
+exports.closeProject= async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed.');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+    try {
+        const {summ, id, dateEnd} = req.body;
+        console.log(summ, id, dateEnd);
+        await Project.findOneAndUpdate(
+            { _id: req.body.id },
+            { $set: {
+                    "status": "close",
+                    "dateEnd": dateEnd,
+                }}
+        );
+        for (let idEmp in summ) {
+            console.log(summ[idEmp]);
+            console.log(await  Project.findOne({"_id": id, "participants.idEmployee": idEmp, "participants.idDept": summ[idEmp].idDept}));
+            await Project.findOneAndUpdate(
+                {"_id": id, "participants.idEmployee": idEmp, "participants.idDept": summ[idEmp].idDept},
+                {$set: {
+                        "participants.$.premium": Number(summ[idEmp].premium),
+                        "participants.$.fine": Number(summ[idEmp].fine)
+                    }}
+            );
+        }
+        const project = await Project.findById(id);
+        res.status(201).json({message: 'Project close!', project: project});
     } catch (err) {
         console.error(err.message);
         if (!err.statusCode) {

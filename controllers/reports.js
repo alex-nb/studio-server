@@ -27,7 +27,6 @@ exports.addReport = async (req, res, next) => {
         error.statusCode = 422;
         error.data = errors.array();
         throw error;
-        //return res.status(400).json({ errors: errors.array() });
     }
     try {
         const newReport = new Report({
@@ -40,13 +39,20 @@ exports.addReport = async (req, res, next) => {
         });
 
         const report = await newReport.save();
-        await Project.findOneAndUpdate({_id: req.body.idProject}, {$push: {reports: {
-                idEmployee: req.userId,
-                idReport: report._id
-            }
-        }});
-        res.status(201).json({message: 'Report created!', report: report._id});
-        //res.json(report);
+        const project = await Project.findOneAndUpdate(
+            {_id: req.body.idProject},
+            {$push: {reports: {
+                    idEmployee: req.userId,
+                    idReport: report._id
+                }
+            }},
+            {new: true}
+            ).populate('reports.idEmployee', 'name')
+            .populate(
+                'reports.idReport',
+                'date report hoursWork acceptedHoursWork hoursStudy acceptedHoursStudy reason status'
+            );
+        res.status(201).json({message: 'Report for project created!', project: project});
     } catch (err) {
         console.error(err.message);
         if (!err.statusCode) {
