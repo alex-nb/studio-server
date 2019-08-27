@@ -1,5 +1,7 @@
 const Project = require('../models/project');
 const Dept = require('../models/department');
+const Employee = require('../models/employee');
+
 const { validationResult } = require('express-validator/check');
 
 exports.getProjects = async (req, res, next) => {
@@ -148,7 +150,7 @@ exports.updateProject = async (req, res, next) => {
             { _id: id },
             { $set: projectFields },
             {new: true}
-        );
+        ).populate('participants.idEmployee', 'name img');
         res.status(201).json({message: 'Project updates!', project: project});
     } catch (err) {
         console.error(err.message);
@@ -159,20 +161,6 @@ exports.updateProject = async (req, res, next) => {
     }
 };
 
-/*
-* status: close
-* dateEnd
-* participants: [
-        {
-            idEmployee: ,
-            idDept: ,
-            nameDept: ,
-            revenue: ,
-            premium: ,
-            fine:
-        }
-    ]
-* */
 
 exports.closeProject= async (req, res, next) => {
     const errors = validationResult(req);
@@ -184,27 +172,25 @@ exports.closeProject= async (req, res, next) => {
     }
     try {
         const {summ, id, dateEnd} = req.body;
-        console.log(summ, id, dateEnd);
-        await Project.findOneAndUpdate(
+        const project = await Project.findById(id);
+        let participants = project.participants;
+        for (let id in summ) {
+            let employee = participants.find(employee => String(employee._id)===id);
+            participants[participants.indexOf(employee)].premium = Number(summ[id].premium);
+            participants[participants.indexOf(employee)].fine = Number(summ[id].fine);
+            let newBalance = Number(summ[id].premium)-Number(summ[id].fine)+Number(summ[id].revenue);
+            await Employee.findOneAndUpdate({_id: employee.idEmployee}, {$inc: {balance: newBalance}});
+        }
+        const newProject = await Project.findOneAndUpdate(
             { _id: req.body.id },
             { $set: {
                     "status": "close",
                     "dateEnd": dateEnd,
-                }}
-        );
-        for (let idEmp in summ) {
-            console.log(summ[idEmp]);
-            console.log(await  Project.findOne({"_id": id, "participants.idEmployee": idEmp, "participants.idDept": summ[idEmp].idDept}));
-            await Project.findOneAndUpdate(
-                {"_id": id, "participants.idEmployee": idEmp, "participants.idDept": summ[idEmp].idDept},
-                {$set: {
-                        "participants.$.premium": Number(summ[idEmp].premium),
-                        "participants.$.fine": Number(summ[idEmp].fine)
-                    }}
-            );
-        }
-        const project = await Project.findById(id);
-        res.status(201).json({message: 'Project close!', project: project});
+                    participants: participants
+                }},
+            {new: true}
+        ).populate('participants.idEmployee', 'name img');
+        res.status(201).json({message: 'Project close!', project: newProject});
     } catch (err) {
         console.error(err.message);
         if (!err.statusCode) {
