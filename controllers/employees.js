@@ -1,6 +1,7 @@
 const Employee = require('../models/employee');
 const Department = require('../models/department');
 const Transaction = require('../models/transaction');
+const { validationResult } = require('express-validator/check');
 
 exports.getPersonalInfo = async (req, res, next) => {
     const userId = req.params.userId;
@@ -44,6 +45,27 @@ exports.getEmployeesList = async (req, res, next) => {
             employeesList: employeesList
         });
     } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.getPersonalInfo = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed.');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+    try {
+        const employee = await Employee.findById(req.userId, 'name balance email status');
+        const balanceHistory = await Transaction.find({idEmployee: req.userId});
+        res.status(201).json({message: 'Personal info.', employee: employee, balanceHistory:balanceHistory});
+    } catch (err) {
+        console.error(err.message);
         if (!err.statusCode) {
             err.statusCode = 500;
         }

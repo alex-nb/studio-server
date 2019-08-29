@@ -11,14 +11,15 @@ const requestSchema = new Schema({
         type: String,
         required: true
     },
-    dateIssue: {
-        type: String,
-        required: false
-    },
     sum: {
         type: Number,
         required: true
     },
+    /*
+    * new
+    * granted
+    * denied
+    * */
     status: {
         type: String,
         required: true

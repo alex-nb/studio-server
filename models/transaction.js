@@ -15,11 +15,11 @@ const transactionSchema = new Schema({
         idExp: {
             type: Schema.Types.ObjectId,
             ref: 'Expenditure',
-            required: true
+            required: false
         },
         title: {
             type: String,
-            required: true
+            required: false
         }
     },
     whom: {

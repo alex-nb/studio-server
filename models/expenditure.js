@@ -19,6 +19,6 @@ const expenditureSchema = new Schema({
         type: Number,
         required: false
     }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Expenditure', expenditureSchema);

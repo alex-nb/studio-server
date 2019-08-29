@@ -9,5 +9,6 @@ const router = express.Router();
 
 router.get('/', isAuth, reportsController.getReports);
 router.post('/', isAuth, reportsController.addReport);
+router.post('/update', isAuth, reportsController.updateReport);
 
 module.exports = router;
