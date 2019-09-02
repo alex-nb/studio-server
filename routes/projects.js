@@ -13,5 +13,5 @@ router.get('/close', isAuth, projectsController.getCloseProjects);
 router.get('/:projectId', isAuth, projectsController.getProject);
 router.post('/', isAuth, projectsController.updateProject);
 router.post('/close', isAuth, projectsController.closeProject);
-
+router.post('/start', isAuth, projectsController.startProject);
 module.exports = router;

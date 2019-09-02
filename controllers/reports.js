@@ -1,6 +1,7 @@
 const Report = require('../models/report');
 const Project = require('../models/project');
 const Employee = require('../models/employee');
+const Transaction = require('../models/transaction');
 const { validationResult } = require('express-validator/check');
 
 exports.getReports = async (req, res, next) => {
@@ -86,6 +87,13 @@ exports.updateReport = async (req, res, next) => {
             }}, {new: true});
             await Employee.findOneAndUpdate({_id: idEmp}, {$inc: {balance: 5}});
             await Employee.findOneAndUpdate({status: "studio"}, {$inc: {balance: -5}});
+            let transaction = new Transaction({
+                title: 'Начисление за отчет',
+                idEmployee: idEmp,
+                summ: 5,
+                type: 'expense'
+            });
+            await transaction.save();
         }
         if (action==="reject") {
             const {acceptedHoursWork, acceptedHoursStudy, reason} = req.body;
@@ -98,6 +106,13 @@ exports.updateReport = async (req, res, next) => {
             hoursBad = (Number(report.hoursWork)-Number(acceptedHoursWork))+(Number(report.hoursStudy)-Number(acceptedHoursStudy));
             await Employee.findOneAndUpdate({_id: idEmp}, {$inc: {balance: -5}});
             await Employee.findOneAndUpdate({status: "studio"}, {$inc: {balance: 5}});
+            let transaction = new Transaction({
+                title: 'Вычет за отчет',
+                idEmployee: idEmp,
+                summ: 5,
+                type: 'income'
+            });
+            await transaction.save();
         }
         if (action==="mark") {
             newReport = await Report.findOneAndUpdate({_id: id}, { $set: {

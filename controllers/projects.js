@@ -1,6 +1,7 @@
 const Project = require('../models/project');
 const Dept = require('../models/department');
 const Employee = require('../models/employee');
+const Transaction = require('../models/transaction');
 
 const { validationResult } = require('express-validator/check');
 
@@ -161,8 +162,7 @@ exports.updateProject = async (req, res, next) => {
     }
 };
 
-
-exports.closeProject= async (req, res, next) => {
+exports.closeProject = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const error = new Error('Validation failed.');
@@ -180,6 +180,13 @@ exports.closeProject= async (req, res, next) => {
             participants[participants.indexOf(employee)].fine = Number(summ[id].fine);
             let newBalance = Number(summ[id].premium)-Number(summ[id].fine)+Number(summ[id].revenue);
             await Employee.findOneAndUpdate({_id: employee.idEmployee}, {$inc: {balance: newBalance}});
+            let transaction = new Transaction({
+                title: 'Начисление по проекту "'+project.title+'"',
+                idEmployee: employee.idEmployee,
+                summ: newBalance,
+                type: 'expense'
+            });
+            await transaction.save();
         }
         const newProject = await Project.findOneAndUpdate(
             { _id: req.body.id },
@@ -191,6 +198,31 @@ exports.closeProject= async (req, res, next) => {
             {new: true}
         ).populate('participants.idEmployee', 'name img');
         res.status(201).json({message: 'Project close!', project: newProject});
+    } catch (err) {
+        console.error(err.message);
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
+
+exports.startProject = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed.');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+    try {
+        const {id} = req.body;
+        const newProject = await Project.findOneAndUpdate(
+            { _id: id },
+            { $set: { "status": "process"}},
+            {new: true}
+        ).populate('participants.idEmployee', 'name img');
+        res.status(201).json({message: 'Project start!', project: newProject});
     } catch (err) {
         console.error(err.message);
         if (!err.statusCode) {

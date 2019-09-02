@@ -98,13 +98,6 @@ exports.updateExpenditure = async (req, res, next) => {
     }
 };
 
-/*
-* TODO:
-*  не убавляется количество в статье при смене расхода на доход
-*  добавить выдачу ДС сотруднику (учесть так же смену суммы и типа платежа для него,
-* а так же смену сотрудника на другого или нулевого)
-* */
-
 exports.updateTransaction = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -120,6 +113,7 @@ exports.updateTransaction = async (req, res, next) => {
         summ: summ,
         type: type
     };
+    let deleteFields = {};
     if (exp_id) {
         const newExp = await Expenditure.findById(exp_id);
         updateFields.expenditure = {
@@ -127,17 +121,31 @@ exports.updateTransaction = async (req, res, next) => {
             title: newExp.title
         }
     }
+    else deleteFields.expenditure = 1;
     if (whom) updateFields.whom = whom;
+    else deleteFields.whom = 1;
     if (employee) updateFields.idEmployee = employee;
+    else deleteFields.idEmployee = 1;
     let transaction;
     try {
+        //Изменение старой транзакции
         if (id) {
             const oldTransaction = await Transaction.findById(id);
-            transaction = await Transaction.findOneAndUpdate(
-                { _id: id},
-                { $set: updateFields},
-                {new: true}
-            );
+            if (Object.keys(deleteFields).length === 0) {
+                transaction = await Transaction.findOneAndUpdate(
+                    { _id: id},
+                    { $set: updateFields},
+                    {new: true}
+                );
+            }
+            else {
+                transaction = await Transaction.findOneAndUpdate(
+                    { _id: id},
+                    { $set: updateFields, $unset: deleteFields},
+                    {new: true}
+                );
+            }
+            //Изменение статьи расхода
             if (oldTransaction.expenditure.idExp !== transaction.expenditure.idExp) {
                 if (oldTransaction.expenditure.idExp) {
                     const oldExp = await Expenditure.findOneAndUpdate({"_id": oldTransaction.expenditure.idExp}, {$inc: {count: 0-1}}, {new: true});
@@ -148,12 +156,21 @@ exports.updateTransaction = async (req, res, next) => {
                     if (newExp.idExpParent) await Expenditure.findOneAndUpdate({"_id": newExp.idExpParent}, {$inc: {count: 1}});
                 }
             }
+            //Изменение суммы или типа транзакции (доход/расход)
             if (oldTransaction.summ !== transaction.summ || oldTransaction.type !== transaction.type) {
                 const oldBalance = oldTransaction.type==="expense" ? Number(oldTransaction.summ) : 0-Number(oldTransaction.summ);
                 const newBalance = transaction.type==="expense" ? 0-Number(transaction.summ) : Number(transaction.summ);
                 await Employee.findOneAndUpdate({status: "studio"}, {$inc: {balance: oldBalance+newBalance}});
             }
+            //Изменение сотрудника
+            if (oldTransaction.idEmployee !== transaction.idEmployee) {
+                const oldBalance = oldTransaction.type==="expense" ? 0-Number(oldTransaction.summ) : Number(oldTransaction.summ);
+                const newBalance = transaction.type==="expense" ? Number(transaction.summ) : 0-Number(transaction.summ);
+                if (oldTransaction.idEmployee) await Employee.findOneAndUpdate({_id: oldTransaction.idEmployee}, {$inc: {balance: oldBalance}});
+                if (transaction.idEmployee) await Employee.findOneAndUpdate({_id: transaction.idEmployee}, {$inc: {balance: newBalance}});
+            }
         }
+        //Сохдание новой транзакции
         else {
             transaction = new Transaction(updateFields);
             await transaction.save();
@@ -163,7 +180,9 @@ exports.updateTransaction = async (req, res, next) => {
                 const newExp = await Expenditure.findOneAndUpdate({"_id": exp_id}, {$inc: {count: 1}});
                 if (newExp.idExpParent) await Expenditure.findOneAndUpdate({"_id": newExp.idExpParent}, {$inc: {count: 1}});
             }
+            if (transaction.idEmployee) await Employee.findOneAndUpdate({_id: transaction.idEmployee}, {$inc: {balance: 0-newBalance}});
         }
+        await transaction.populate('idEmployee', 'name').execPopulate();
         res.status(201).json({message: 'Transaction created successfully!', transaction: transaction});
     } catch (err) {
         console.error(err.message);
@@ -194,10 +213,10 @@ exports.setAnswerRequest = async (req, res, next) => {
             const newTransaction = new Transaction({
                 title: "Выдача ДС",
                 idEmployee: request.idEmployee,
-                expenditure: {
+                /*expenditure: {
                     idExp: "5cf4f45fbaafcb28d537a658",
                     title: "Главная статья"
-                },
+                },*/
                 summ: request.sum,
                 type: "expense"
             });
