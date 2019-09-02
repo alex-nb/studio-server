@@ -72,3 +72,33 @@ exports.getPersonalInfo = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.addEmployee = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed, entered data is incorrect.');
+        error.statusCode = 422;
+        throw error;
+    }
+    try {
+        const {idEmp, idDept} = req.body;
+        let department;
+        if (idEmp && idDept) {
+            department = await Department.findOneAndUpdate(
+                {_id: idDept},
+                {$push: {employees: {
+                            idEmp: idEmp
+                        }
+                }},
+                {new: true}
+            ).populate('employees.idEmp', 'name img');
+        }
+        res.status(201).json({message: 'Add employee successfully!', department: department});
+    } catch (err) {
+        console.error(err.message);
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+};
