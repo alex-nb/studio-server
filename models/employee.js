@@ -6,6 +6,10 @@ const employeeSchema = new Schema({
         type: String,
         required: true
     },
+    birthday: {
+        type: String,
+        required: false
+    },
     balance: {
         type: Number,
         default: 0
@@ -22,9 +26,9 @@ const employeeSchema = new Schema({
         type: String,
         required: true
     },
-    status: {
-        type: String,
-        default: "new"
+    active: {
+        type: Boolean,
+        default: true
     }
 }, { timestamps: true });
 

@@ -180,6 +180,7 @@ exports.closeProject = async (req, res, next) => {
             participants[participants.indexOf(employee)].fine = Number(summ[id].fine);
             let newBalance = Number(summ[id].premium)-Number(summ[id].fine)+Number(summ[id].revenue);
             await Employee.findOneAndUpdate({_id: employee.idEmployee}, {$inc: {balance: newBalance}});
+            await Employee.findOneAndUpdate({status: "studio"}, {$inc: {balance: 0-newBalance}});
             let transaction = new Transaction({
                 title: 'Начисление по проекту "'+project.title+'"',
                 idEmployee: employee.idEmployee,

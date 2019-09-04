@@ -38,7 +38,7 @@ exports.login = async (req, res, next) => {
   let loadedUser;
     try {
         const user = await User.findOne({email: email});
-        if (!user) {
+        if (!user || !user.active) {
             const error = new Error('User with this email could not be found.');
             error.statusCode = 401;
             next(error);

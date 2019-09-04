@@ -11,11 +11,9 @@ const departmentSchema = new Schema({
         required: true
     },
     employees: [{
-        idEmp: {
-            type: Schema.Types.ObjectId,
-            ref: 'Employee',
-            required: false
-        }
+        type: Schema.Types.ObjectId,
+        ref: 'Employee',
+        required: false
     }]
 }, { timestamps: true });
 
