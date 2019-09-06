@@ -3,18 +3,18 @@ const { body } = require('express-validator/check');
 
 const financeController = require('../controllers/finance');
 const isAuth = require('../middleware/is-auth');
-
+const checkPermission = require('../middleware/check-permission');
 const router = express.Router();
 
-router.get('/expenditure', isAuth, financeController.getExpenditures);
-router.post('/expenditure', isAuth, financeController.updateExpenditure);
+router.get('/expenditure', isAuth, checkPermission('workExpenditures'), financeController.getExpenditures);
+router.post('/expenditure', isAuth, checkPermission('workExpenditures'), financeController.updateExpenditure);
 
-router.get('/request', isAuth, financeController.getRequests);
+router.get('/request', isAuth, checkPermission('workRequests'), financeController.getRequests);
 router.post('/request', isAuth, financeController.createRequest);
-router.post('/request/answer', isAuth, financeController.setAnswerRequest);
+router.post('/request/answer', isAuth, checkPermission('workRequests'), financeController.setAnswerRequest);
 
-router.get('/transaction', isAuth, financeController.getTransaction);
-router.post('/transaction', isAuth, financeController.updateTransaction);
+router.get('/transaction', isAuth, checkPermission('workTransaction'), financeController.getTransaction);
+router.post('/transaction', isAuth, checkPermission('workTransaction'), financeController.updateTransaction);
 
 
 module.exports = router;

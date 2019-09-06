@@ -4,7 +4,7 @@ const Transaction = require('../models/transaction');
 const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 
-exports.getPersonalInfo = async (req, res, next) => {
+exports.getPersonalInfo = async (req, res) => {
     const userId = req.params.userId;
     let balance;
     try {
@@ -16,14 +16,12 @@ exports.getPersonalInfo = async (req, res, next) => {
             info: info
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getDepartmentsStructure = async (req, res, next) => {
+exports.getDepartmentsStructure = async (req, res) => {
     try {
         const departmentsStructure = await Department.find().populate('employees', 'name img');
         res.status(200).json({
@@ -31,14 +29,12 @@ exports.getDepartmentsStructure = async (req, res, next) => {
             departmentsStructure: departmentsStructure
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getEmployeesList = async (req, res, next) => {
+exports.getEmployeesList = async (req, res) => {
     try {
         const employeesList = await Employee.find({active: true});
         res.status(200).json({
@@ -46,20 +42,15 @@ exports.getEmployeesList = async (req, res, next) => {
             employeesList: employeesList
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getPersonalInfo = async (req, res, next) => {
+exports.getPersonalInfo = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed.');
-        error.statusCode = 422;
-        error.data = errors.array();
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const employee = await Employee.findById(req.userId, 'name balance email status');
@@ -67,19 +58,14 @@ exports.getPersonalInfo = async (req, res, next) => {
         res.status(201).json({message: 'Personal info.', employee: employee, balanceHistory:balanceHistory});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.addEmployee = async (req, res, next) => {
+exports.addEmployee = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect.');
-        error.statusCode = 422;
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const {idEmp, idDept} = req.body;
@@ -111,19 +97,14 @@ exports.addEmployee = async (req, res, next) => {
         res.status(201).json({message: 'Add employee successfully!', department: department});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.updateDepartments = async (req, res, next) => {
+exports.updateDepartments = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect.');
-        error.statusCode = 422;
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const departments = req.body;
@@ -136,19 +117,14 @@ exports.updateDepartments = async (req, res, next) => {
         res.status(201).json({message: 'Update departments successfully!'});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.deleteEmployee = async (req, res, next) => {
+exports.deleteEmployee = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect.');
-        error.statusCode = 422;
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const idEmp = req.params.id;
@@ -164,9 +140,6 @@ exports.deleteEmployee = async (req, res, next) => {
         res.status(201).json({message: 'Delete employee successfully!', employee: employee});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };

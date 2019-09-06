@@ -1,34 +1,67 @@
 const Report = require('../models/report');
+const Dept = require('../models/department');
 const Project = require('../models/project');
 const Employee = require('../models/employee');
 const Transaction = require('../models/transaction');
 const { validationResult } = require('express-validator/check');
 
-exports.getReports = async (req, res, next) => {
+exports.getReports = async (req, res) => {
     try {
-        const reports = await Project.find({reports:{$exists: true, $ne: []}}, '_id title hoursPlan hoursFact hoursBad')
-            .populate('reports.idEmployee', 'name')
-            .populate('reports.idReport',
-                'date report hoursWork acceptedHoursWork hoursStudy acceptedHoursStudy reason status');
+        const userId = req.userId;
+        let roles = await Dept.find({ employees: userId }, {systemTitle:1});
+        roles = roles.map(role => role.systemTitle);
+        let reports;
+        if (roles.indexOf('studio')>-1) {
+            reports = await Project.find(
+                {reports:{$exists: true, $ne: []}},
+                '_id title hoursPlan hoursFact hoursBad hoursFactWork hoursBadWork hoursFactStudy hoursBadStudy'
+            )
+                .populate('reports.idEmployee', 'name')
+                .populate('reports.idReport',
+                    'date report hoursWork acceptedHoursWork hoursStudy acceptedHoursStudy reason status');
+        }
+        else {
+            if (roles.indexOf('pm')>-1) {
+                reports = await Project.find(
+                    {reports:{$exists: true, $ne: []}, "participants.idEmployee": userId},
+                    '_id title hoursPlan hoursFact hoursBad hoursFactWork hoursBadWork hoursFactStudy hoursBadStudy'
+                )
+                    .populate('reports.idEmployee', 'name')
+                    .populate('reports.idReport',
+                        'date report hoursWork acceptedHoursWork hoursStudy acceptedHoursStudy reason status');
+            }
+            else {
+                reports = await Project.find(
+                    {reports:{$exists: true, $ne: []}, "participants.idEmployee": userId},
+                    '_id title hoursPlan hoursFact hoursBad hoursFactWork hoursBadWork hoursFactStudy hoursBadStudy'
+                )
+                    .populate({
+                        path: 'reports.idEmployee',
+                        match: { _id: userId},
+                        select: 'name'
+                    })
+                    .populate({
+                        path: 'reports.idReport',
+                        match: { idEmployee: userId},
+                        select: 'date report hoursWork acceptedHoursWork hoursStudy acceptedHoursStudy reason status'
+                    });
+            }
+
+        }
         res.status(200).json({
             message: 'Fetched reports successfully.',
             reports: reports
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.addReport = async (req, res, next) => {
+exports.addReport = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed.');
-        error.statusCode = 422;
-        error.data = errors.array();
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const newReport = new Report({
@@ -57,20 +90,14 @@ exports.addReport = async (req, res, next) => {
         res.status(201).json({message: 'Report for project created!', project: project});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.updateReport = async (req, res, next) => {
+exports.updateReport = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed.');
-        error.statusCode = 422;
-        error.data = errors.array();
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const {action, id} = req.body;
@@ -78,7 +105,8 @@ exports.updateReport = async (req, res, next) => {
         const idEmp = report.idEmployee;
         const idProject = report.idProject;
         let newReport;
-        let hoursBad = 0;
+        let hoursBadWork = 0;
+        let hoursBadStudy = 0;
         if (action==="accept") {
             newReport = await Report.findOneAndUpdate({_id: id}, { $set: {
                 "status": "accepted",
@@ -103,7 +131,8 @@ exports.updateReport = async (req, res, next) => {
                 "acceptedHoursStudy" : Number(acceptedHoursStudy),
                 "reason": reason
             }}, {new: true});
-            hoursBad = (Number(report.hoursWork)-Number(acceptedHoursWork))+(Number(report.hoursStudy)-Number(acceptedHoursStudy));
+            hoursBadWork = (Number(report.hoursWork)-Number(acceptedHoursWork));
+            hoursBadStudy = (Number(report.hoursStudy)-Number(acceptedHoursStudy));
             await Employee.findOneAndUpdate({_id: idEmp}, {$inc: {balance: -5}});
             await Employee.findOneAndUpdate({status: "studio"}, {$inc: {balance: 5}});
             let transaction = new Transaction({
@@ -123,14 +152,15 @@ exports.updateReport = async (req, res, next) => {
         }
         await Project.findOneAndUpdate({_id: idProject}, {$inc: {
                 hoursFact: Number(report.hoursWork)+ Number(report.hoursStudy),
-                hoursBad: hoursBad
+                hoursBad: hoursBadWork+hoursBadStudy,
+                hoursFactWork: Number(report.hoursWork),
+                hoursBadWork: hoursBadWork,
+                hoursFactStudy: Number(report.hoursStudy),
+                hoursBadStudy: hoursBadStudy,
             }});
         res.status(201).json({message: 'Report updated!', report: newReport});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };

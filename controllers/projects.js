@@ -5,7 +5,7 @@ const Transaction = require('../models/transaction');
 
 const { validationResult } = require('express-validator/check');
 
-exports.getProjects = async (req, res, next) => {
+exports.getProjects = async (req, res) => {
     try {
         const projects = await Project.find();
         res.status(200).json({
@@ -13,14 +13,12 @@ exports.getProjects = async (req, res, next) => {
             projects: projects
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getNewProjects = async (req, res, next) => {
+exports.getNewProjects = async (req, res) => {
     try {
         const projects = await Project.find({ status: 'new'});
         res.status(200).json({
@@ -28,74 +26,123 @@ exports.getNewProjects = async (req, res, next) => {
             projects: projects
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getProcessProjects = async (req, res, next) => {
+exports.getProcessProjects = async (req, res) => {
     try {
-        const projects = await Project.find({ status: 'process'})
-            .populate('reports.idEmployee', 'name')
-            .populate('reports.idReport')
-            .populate('participants.idEmployee', 'name img');
+        const userId = req.userId;
+        let projects;
+        const dept = await Dept.find({ employees: userId }, {systemTitle:1});
+        const roles = dept.map(role => role.systemTitle);
+        if (roles.indexOf('studio')>-1) {
+            projects = await Project.find({ status: 'process'})
+                .populate('reports.idEmployee', 'name')
+                .populate('reports.idReport')
+                .populate('participants.idEmployee', 'name img');
+        }
+        else {
+            if (roles.indexOf('pm')>-1) {
+                projects = await Project.find({ status: 'process', "participants.idEmployee": userId})
+                    .populate('reports.idEmployee', 'name')
+                    .populate('reports.idReport')
+                    .populate('participants.idEmployee', 'name img');
+            }
+            else {
+                projects = await Project.find({ status: 'process', "participants.idEmployee": userId})
+                    .populate({
+                        path: 'reports.idEmployee',
+                        match: { _id: userId},
+                        select: 'name'
+                    })
+                    .populate({
+                        path: 'reports.idReport',
+                        match: { idEmployee: userId}
+                    })
+                    .populate({
+                        path: 'participants.idEmployee',
+                        select: 'name img'
+                    });
+            }
+        }
         res.status(200).json({
             message: 'Fetched process projects successfully.',
             projects: projects
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getCloseProjects = async (req, res, next) => {
+exports.getCloseProjects = async (req, res) => {
     try {
-        const projects = await Project.find({ status: 'close'})
-            .populate('reports.idEmployee', 'name')
-            .populate('reports.idReport')
-            .populate('participants.idEmployee', 'name img');
+        let projects;
+        const userId = req.userId;
+        let roles = await Dept.find({ employees: userId }, {systemTitle:1, _id:0});
+        roles = roles.map(role => role.systemTitle);
+        if (roles.indexOf('studio')>-1) {
+            projects = await Project.find({ status: 'close'})
+                .populate('reports.idEmployee', 'name')
+                .populate('reports.idReport')
+                .populate('participants.idEmployee', 'name img');
+        }
+        else {
+            if (roles.indexOf('pm')>-1) {
+                projects = await Project.find({ status: 'close', "participants.idEmployee": userId})
+                    .populate('reports.idEmployee', 'name')
+                    .populate('reports.idReport')
+                    .populate('participants.idEmployee', 'name img');
+            }
+            else {
+                projects = await Project.find({ status: 'close', "participants.idEmployee": userId})
+                    .populate({
+                        path: 'reports.idEmployee',
+                        match: { _id: userId},
+                        select: 'name'
+                    })
+                    .populate({
+                        path: 'reports.idReport',
+                        match: { idEmployee: userId}
+                    })
+                    .populate({
+                        path: 'participants.idEmployee',
+                        select: 'name img'
+                    });
+            }
+        }
         res.status(200).json({
             message: 'Fetched close projects successfully.',
             projects: projects
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getProject = async (req, res, next) => {
-    const projectId = req.params.projectId;
+exports.getProject = async (req, res) => {
+    const id = req.params.id;
     try {
-        const project = await Project.findById(projectId).populate('participants.idEmployee', 'name img');
+        const project = await Project.findById(id).populate('participants.idEmployee', 'name img');
         if (!project) {
-            const error = new Error('Could not find project.');
-            error.statusCode = 404;
-            next(error);1
+            return res
+                .status(404)
+                .json({ errors: [{ msg: 'Could not find project' }] });
         }
         res.status(200).json({ message: 'Project fetched.', project: project });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.updateProject = async (req, res, next) => {
+exports.updateProject = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed.');
-        error.statusCode = 422;
-        error.data = errors.array();
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     const {
         id,
@@ -155,20 +202,14 @@ exports.updateProject = async (req, res, next) => {
         res.status(201).json({message: 'Project updates!', project: project});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.closeProject = async (req, res, next) => {
+exports.closeProject = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed.');
-        error.statusCode = 422;
-        error.data = errors.array();
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const {summ, id, dateEnd} = req.body;
@@ -201,20 +242,14 @@ exports.closeProject = async (req, res, next) => {
         res.status(201).json({message: 'Project close!', project: newProject});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.startProject = async (req, res, next) => {
+exports.startProject = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed.');
-        error.statusCode = 422;
-        error.data = errors.array();
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const {id} = req.body;
@@ -226,9 +261,6 @@ exports.startProject = async (req, res, next) => {
         res.status(201).json({message: 'Project start!', project: newProject});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };

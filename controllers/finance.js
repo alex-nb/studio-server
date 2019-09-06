@@ -5,7 +5,7 @@ const Employee = require('../models/employee');
 
 const { validationResult } = require('express-validator/check');
 
-exports.getExpenditures = async (req, res, next) => {
+exports.getExpenditures = async (req, res) => {
     try {
         const expenditures= await Expenditure.find();
         res.status(200).json({
@@ -13,14 +13,12 @@ exports.getExpenditures = async (req, res, next) => {
             expenditures: expenditures
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getRequests = async (req, res, next) => {
+exports.getRequests = async (req, res) => {
     try {
         const requests = await Request.find().populate('idEmployee', 'name');
         res.status(200).json({
@@ -28,14 +26,12 @@ exports.getRequests = async (req, res, next) => {
             requests: requests
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.getTransaction = async (req, res, next) => {
+exports.getTransaction = async (req, res) => {
     try {
         const transactions = await Transaction.find().sort({createdAt: -1}).populate('idEmployee', 'name');
         res.status(200).json({
@@ -43,19 +39,15 @@ exports.getTransaction = async (req, res, next) => {
             transactions: transactions
         });
     } catch (err) {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        console.error(err.message);
+        res.status(500).send('Server error');
     }
 };
 
-exports.updateExpenditure = async (req, res, next) => {
+exports.updateExpenditure = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect.');
-        error.statusCode = 422;
-        throw error;
+        return res.status(400).json({ errors: errors.array() });;
     }
     let expenditure;
     const {id, name, parent, type} = req.body;
@@ -91,19 +83,14 @@ exports.updateExpenditure = async (req, res, next) => {
         res.status(201).json({message: 'Expenditure created successfully!', expenditure: expenditure});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.updateTransaction = async (req, res, next) => {
+exports.updateTransaction = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect.');
-        error.statusCode = 422;
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     const {id, type,
         title, whom, summ,
@@ -186,19 +173,14 @@ exports.updateTransaction = async (req, res, next) => {
         res.status(201).json({message: 'Transaction created successfully!', transaction: transaction});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.setAnswerRequest = async (req, res, next) => {
+exports.setAnswerRequest = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect.');
-        error.statusCode = 422;
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const {id, status} = req.body;
@@ -225,19 +207,14 @@ exports.setAnswerRequest = async (req, res, next) => {
         res.status(201).json({message: 'Set request answer successfully!', request: request});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };
 
-exports.createRequest = async (req, res, next) => {
+exports.createRequest = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed, entered data is incorrect.');
-        error.statusCode = 422;
-        throw error;
+        return res.status(400).json({ errors: errors.array() });
     }
     try {
         const {time, money} = req.body;
@@ -251,9 +228,6 @@ exports.createRequest = async (req, res, next) => {
         res.status(201).json({message: 'Create request successfully!', request: request});
     } catch (err) {
         console.error(err.message);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
+        res.status(500).send('Server error');
     }
 };

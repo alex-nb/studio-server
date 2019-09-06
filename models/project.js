@@ -38,6 +38,22 @@ const projectSchema = new Schema({
         type: Number,
         required: false
     },
+    hoursFactWork: {
+        type: Number,
+        required: false
+    },
+    hoursBadWork: {
+        type: Number,
+        required: false
+    },
+    hoursFactStudy: {
+        type: Number,
+        required: false
+    },
+    hoursBadStudy: {
+        type: Number,
+        required: false
+    },
     premium: {
         type: Number,
         required: false

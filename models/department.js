@@ -14,7 +14,11 @@ const departmentSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Employee',
         required: false
-    }]
+    }],
+    systemTitle: {
+        type: String,
+        required: true
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Department', departmentSchema);
