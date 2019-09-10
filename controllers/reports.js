@@ -54,7 +54,9 @@ exports.getReports = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -90,7 +92,9 @@ exports.addReport = async (req, res) => {
         res.status(201).json({message: 'Report for project created!', project: project});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -161,6 +165,8 @@ exports.updateReport = async (req, res) => {
         res.status(201).json({message: 'Report updated!', report: newReport});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };

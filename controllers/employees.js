@@ -17,7 +17,9 @@ exports.getPersonalInfo = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -30,7 +32,9 @@ exports.getDepartmentsStructure = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -43,7 +47,9 @@ exports.getEmployeesList = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -53,12 +59,15 @@ exports.getPersonalInfo = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const employee = await Employee.findById(req.userId, 'name balance email status');
+        const employee = await Employee.findById(req.userId, 'name balance email status img');
         const balanceHistory = await Transaction.find({idEmployee: req.userId});
-        res.status(201).json({message: 'Personal info.', employee: employee, balanceHistory:balanceHistory});
+        const departments = await Department.find({ employees: req.userId }, 'title');
+        res.status(201).json({message: 'Personal info.', employee: employee, balanceHistory:balanceHistory, departments:departments});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -97,7 +106,9 @@ exports.addEmployee = async (req, res) => {
         res.status(201).json({message: 'Add employee successfully!', department: department});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -117,7 +128,9 @@ exports.updateDepartments = async (req, res) => {
         res.status(201).json({message: 'Update departments successfully!'});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -140,6 +153,8 @@ exports.deleteEmployee = async (req, res) => {
         res.status(201).json({message: 'Delete employee successfully!', employee: employee});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };

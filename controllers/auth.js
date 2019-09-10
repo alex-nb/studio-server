@@ -23,7 +23,9 @@ exports.signup = async (req, res) => {
         await user.save();
         res.status(201).json({message: 'Employee created!', userId: user._id});
     } catch (err) {
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -58,6 +60,8 @@ exports.login = async (req, res) => {
         res.status(200).json({token: token, userId: loadedUser._id.toString(), balance: loadedUser.balance, roles: roles})
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };

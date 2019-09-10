@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
         decodedToken = jwt.verify(token, 'supersuperverysecretlongstring');
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        return res.status(500).send('Server error');
     }
     if (!decodedToken) {
         return res

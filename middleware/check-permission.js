@@ -27,6 +27,9 @@ module.exports = (action) => async (req, res, next) => {
                 if (project.status==='new') return next();
             }
             break;
+        case 'createProject':
+            if (roles.indexOf('studio')>-1 || roles.indexOf('pm') > -1) return next();
+            break;
         case 'closeProject': //для pm только по своему проекту
         case 'startProject':
             if (roles.indexOf('studio')>-1) return next();

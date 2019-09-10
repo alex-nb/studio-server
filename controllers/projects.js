@@ -14,7 +14,9 @@ exports.getProjects = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -27,7 +29,9 @@ exports.getNewProjects = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -73,7 +77,9 @@ exports.getProcessProjects = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -119,7 +125,9 @@ exports.getCloseProjects = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -135,7 +143,9 @@ exports.getProject = async (req, res) => {
         res.status(200).json({ message: 'Project fetched.', project: project });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -202,7 +212,9 @@ exports.updateProject = async (req, res) => {
         res.status(201).json({message: 'Project updates!', project: project});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -242,7 +254,9 @@ exports.closeProject = async (req, res) => {
         res.status(201).json({message: 'Project close!', project: newProject});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -261,6 +275,28 @@ exports.startProject = async (req, res) => {
         res.status(201).json({message: 'Project start!', project: newProject});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
+    }
+};
+
+exports.createProject = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+        const {title} = req.body;
+        const newProject = new Project({
+            title: title
+        });
+        const project = await newProject.save();
+        res.status(201).json({message: 'Project create!', project: project});
+    } catch (err) {
+        console.error(err.message);
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };

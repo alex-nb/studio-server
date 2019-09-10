@@ -8,6 +8,7 @@ const projectSchema = new Schema({
     },
     status: {
         type: String,
+        default: 'new',
         required: true
     },
     costTotal: {

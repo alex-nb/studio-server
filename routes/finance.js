@@ -1,6 +1,4 @@
 const express = require('express');
-const { body } = require('express-validator/check');
-
 const financeController = require('../controllers/finance');
 const isAuth = require('../middleware/is-auth');
 const checkPermission = require('../middleware/check-permission');
@@ -16,5 +14,9 @@ router.post('/request/answer', isAuth, checkPermission('workRequests'), financeC
 router.get('/transaction', isAuth, checkPermission('workTransaction'), financeController.getTransaction);
 router.post('/transaction', isAuth, checkPermission('workTransaction'), financeController.updateTransaction);
 
-
+router.all('*', function(req, res){
+    res
+        .status(404)
+        .json({ errors: [{ msg: 'Route not found.' }] });
+});
 module.exports = router;

@@ -1,6 +1,4 @@
 const express = require('express');
-const { body } = require('express-validator/check');
-
 const employeesController = require('../controllers/employees');
 const isAuth = require('../middleware/is-auth');
 const checkPermission = require('../middleware/check-permission');
@@ -12,4 +10,9 @@ router.get('/person', isAuth, employeesController.getPersonalInfo);
 router.post('/', isAuth, checkPermission('editEmployee'), employeesController.addEmployee);
 router.post('/departments', isAuth, checkPermission('editEmployee'), employeesController.updateDepartments);
 router.delete('/:id', isAuth, checkPermission('editEmployee'), employeesController.deleteEmployee);
+router.all('*', function(req, res){
+    res
+        .status(404)
+        .json({ errors: [{ msg: 'Route not found.' }] });
+});
 module.exports = router;

@@ -14,7 +14,9 @@ exports.getExpenditures = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -27,7 +29,9 @@ exports.getRequests = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -40,7 +44,9 @@ exports.getTransaction = async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -83,7 +89,9 @@ exports.updateExpenditure = async (req, res) => {
         res.status(201).json({message: 'Expenditure created successfully!', expenditure: expenditure});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -173,7 +181,9 @@ exports.updateTransaction = async (req, res) => {
         res.status(201).json({message: 'Transaction created successfully!', transaction: transaction});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -207,7 +217,9 @@ exports.setAnswerRequest = async (req, res) => {
         res.status(201).json({message: 'Set request answer successfully!', request: request});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };
 
@@ -228,6 +240,8 @@ exports.createRequest = async (req, res) => {
         res.status(201).json({message: 'Create request successfully!', request: request});
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res
+            .status(500)
+            .json({ errors: [{ msg: 'Server error.' }] });
     }
 };

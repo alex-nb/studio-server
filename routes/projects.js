@@ -13,4 +13,10 @@ router.get('/:id', isAuth, checkPermission('getProject'), projectsController.get
 router.post('/', isAuth, checkPermission('editProject'), projectsController.updateProject);
 router.post('/close', isAuth, checkPermission('closeProject'), projectsController.closeProject);
 router.post('/start', isAuth, checkPermission('startProject'), projectsController.startProject);
+router.post('/create', isAuth, checkPermission('createProject'), projectsController.createProject);
+router.all('*', function(req, res){
+    res
+        .status(404)
+        .json({ errors: [{ msg: 'Route not found.' }] });
+});
 module.exports = router;

@@ -27,4 +27,10 @@ router.put(
 
 router.post('/login', authController.login);
 
+router.all('*', function(req, res){
+    res
+        .status(404)
+        .json({ errors: [{ msg: 'Route not found.' }] });
+});
+
 module.exports = router;
