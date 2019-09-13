@@ -13,8 +13,8 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
-
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit:50000}));
 app.use((req, res, next) => {
    res.setHeader('Access-Control-Allow-Origin', '*');
    res.setHeader(
@@ -30,6 +30,7 @@ app.use('/finance', financeRoutes);
 app.use('/reports', reportsRoutes);
 app.use('/employees', employeesRoutes);
 app.use('/auth', authRoutes);
+app.use(express.static('public'));
 app.use((req, res, next) => {
    res.status(404).json({ errors: [{ msg: 'Route not found.' }] });
 });

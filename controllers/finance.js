@@ -4,6 +4,7 @@ const Transaction = require('../models/transaction');
 const Employee = require('../models/employee');
 
 const { validationResult } = require('express-validator/check');
+const ITEMS_PER_PAGE = 20;
 
 exports.getExpenditures = async (req, res) => {
     try {
@@ -22,10 +23,16 @@ exports.getExpenditures = async (req, res) => {
 
 exports.getRequests = async (req, res) => {
     try {
-        const requests = await Request.find().populate('idEmployee', 'name');
+        const page = +req.params.page || 1;
+        const requests = await Request.find().sort({createdAt: -1}).skip((page - 1) * ITEMS_PER_PAGE)
+            .limit(ITEMS_PER_PAGE).populate('idEmployee', 'name');
+        const totalItems = await Request.find().countDocuments();
         res.status(200).json({
             message: 'Fetched requests successfully.',
-            requests: requests
+            requests: requests,
+            currentPage: page,
+            totalItems: totalItems,
+            itemsPerPage: ITEMS_PER_PAGE
         });
     } catch (err) {
         console.error(err.message);
@@ -37,10 +44,16 @@ exports.getRequests = async (req, res) => {
 
 exports.getTransaction = async (req, res) => {
     try {
-        const transactions = await Transaction.find().sort({createdAt: -1}).populate('idEmployee', 'name');
+        const page = +req.params.page || 1;
+        const transactions = await Transaction.find().sort({createdAt: -1}).skip((page - 1) * ITEMS_PER_PAGE)
+            .limit(ITEMS_PER_PAGE).populate('idEmployee', 'name');
+        const totalItems = await Transaction.find().countDocuments();
         res.status(200).json({
             message: 'Fetched transaction successfully.',
-            transactions: transactions
+            transactions: transactions,
+            currentPage: page,
+            totalItems: totalItems,
+            itemsPerPage: ITEMS_PER_PAGE
         });
     } catch (err) {
         console.error(err.message);

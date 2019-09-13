@@ -16,7 +16,7 @@ const employeeSchema = new Schema({
     },
     img: {
         type: String,
-        required: false
+        default: '/img/default.png'
     },
     email: {
         type: String,

@@ -7,11 +7,11 @@ const router = express.Router();
 router.get('/expenditure', isAuth, checkPermission('workExpenditures'), financeController.getExpenditures);
 router.post('/expenditure', isAuth, checkPermission('workExpenditures'), financeController.updateExpenditure);
 
-router.get('/request', isAuth, checkPermission('workRequests'), financeController.getRequests);
+router.get('/request/:page', isAuth, checkPermission('workRequests'), financeController.getRequests);
 router.post('/request', isAuth, financeController.createRequest);
 router.post('/request/answer', isAuth, checkPermission('workRequests'), financeController.setAnswerRequest);
 
-router.get('/transaction', isAuth, checkPermission('workTransaction'), financeController.getTransaction);
+router.get('/transaction/:page', isAuth, checkPermission('workTransaction'), financeController.getTransaction);
 router.post('/transaction', isAuth, checkPermission('workTransaction'), financeController.updateTransaction);
 
 router.all('*', function(req, res){
